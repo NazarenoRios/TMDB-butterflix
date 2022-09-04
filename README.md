@@ -50,11 +50,7 @@ Javascript
 
 Tailwind
 
-Bootstrap
-
 Chakra UI
-
-Material UI
 
 React
 
