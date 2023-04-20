@@ -1,19 +1,20 @@
 const { User, Movies } = require("../models");
 
 exports.profile = (req, res) => {
-  const userId = req.user.id;
+
+  const { id } = req.params;
 
   User.update(req.body, {
-    where: { id: userId },
+    where: { id: id },
     returning: true,
   }).then(() => res.sendStatus(204));
 };
 
 exports.changePassword = (req, res) => {
-  const userId = req.user.id;
+  const { id } = req.params;
 
   User.update(req.body, {
-    where: { id: userId },
+    where: { id: id },
     returning: true,
     individualHooks: true,
   }).then(() => res.sendStatus(204));

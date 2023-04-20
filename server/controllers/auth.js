@@ -20,10 +20,10 @@ exports.login = (req, res) => {
       model: Movies,
     },
   }).then((user) => {
-    if (!user) return res.send(401);
+    if (!user) return res.sendStatus(401);
 
     user.validatePassword(password).then((isValid) => {
-      if (!isValid) return res.send(401);
+      if (!isValid) return res.sendStatus(401);
 
       const payload = {
         id: user.id,
@@ -33,8 +33,11 @@ exports.login = (req, res) => {
         pic: user.pic
       };
       const token = tokens.generateToken(payload);
-      res.cookie("token", token);
-      res.status(201).send(token);
+      res.status(201).json({
+        error: false,
+        message: "login successfully",
+        user: { ...payload, token },
+      });
     });
   });
 };
@@ -42,6 +45,21 @@ exports.login = (req, res) => {
 exports.validation = (req, res) => {
   res.send(req.user);
 };
+
+exports.persistence = (req,res) => {
+  const { id } = req.params;
+
+  User.findByPk(id, {
+    attributes: [
+      "id",
+      "name",
+      "lastname",
+      "email",
+      "pic"
+    ]
+  }).then(user => res.status(200).send(user))
+  .catch(err => console.log(err))
+}
 
 exports.logout = (req, res) => {
   res.clearCookie("token");
@@ -81,8 +99,8 @@ exports.googlelogin = (req, res) => {
                   lastname: user.lastname,
                 };
                 const token = tokens.generateToken(payload);
-                res.cookie("token", token);
-                res.sendStatus(201);
+                // res.cookie("token", token);
+                res.status(201).send({...payload,token});
               })
             });
         }
@@ -97,8 +115,8 @@ exports.googlelogin = (req, res) => {
             lastname: user.lastname,
           };
           const token = tokens.generateToken(payload);
-          res.cookie("token", token);
-          res.sendStatus(201);
+          // res.cookie("token", token);
+          res.status(201).send({...payload,token});
         });
       });
     });

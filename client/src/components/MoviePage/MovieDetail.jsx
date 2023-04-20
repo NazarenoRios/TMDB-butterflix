@@ -11,11 +11,7 @@ import favorites from "../../assets/btnIcons/favorites.svg";
 
 import { useDispatch, useSelector } from "react-redux";
 import { MovieDetailRequest } from "../../state/movies";
-import {
-  addToFavorites,
-  removeFromFavorites,
-  Favorites,
-} from "../../state/favorites";
+import { fetchApi } from "../../config/axiosInstance";
 
 function MovieDetail() {
   const get_url = "https://api.themoviedb.org/3";
@@ -28,28 +24,56 @@ function MovieDetail() {
   const [checkFav, setCheckFav] = useState(false);
   const [movies, setMovies] = useState([]);
 
+  const users = useSelector((state) => state.users)
   const movie = useSelector((state) => state.movies);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(MovieDetailRequest({ get_url, API_KEY, id }));
-    dispatch(Favorites(setMovies));
-  }, []);
+  const fetchMovieData = async () => {
+    const res = await fetchApi({
+      method: "get",
+      url: `/api/movies/favorites?userId=${users.id}`,
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+
+    setMovies(res.data);
+  };
 
   useEffect(() => {
-    movies.map(favMov => favMov.code === movie.id && setCheckFav(true))
+    dispatch(MovieDetailRequest({ get_url, API_KEY, id }));
+    fetchMovieData();
+  }, []);
+
+  
+  useEffect(() => {
+    movies && movies.map(favMov => favMov.code === movie.id && setCheckFav(true))
   },[movies])
+
+  const fetchAddFavorite = async () => {
+    const res = await fetchApi({
+      method: "put",
+      url: `/api/movies/addFavorite?userId=${users.id}&code=${movie.id}&title=${movie.title}&poster_path=${movie.poster_path}&vote_average=${movie.vote_average}&release_date=${movie.release_date}&type=movie`,
+    });
+    return res.data
+  };
+
+  const fetchDeleteFavorite = async () => {
+    const res = await fetchApi({
+      method: "delete",
+      url: `/api/movies/removeFavorite?userId=${users.id}&code=${movie.id}&type=movie`,
+    });
+    return res.data
+  };
 
   const addFavorite = (e) => {
     e.preventDefault();
     setCheckFav(!checkFav);
-    dispatch(addToFavorites(movie));
+    fetchAddFavorite()
   };
 
   const removeFavorite = (e) => {
     e.preventDefault();
     setCheckFav(!checkFav);
-    dispatch(removeFromFavorites(movie));
+    fetchDeleteFavorite();
   };
   
   return (

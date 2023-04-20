@@ -1,17 +1,26 @@
-import { SimpleGrid } from "@chakra-ui/react";
+import { Center, Flex, SimpleGrid, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { Favorites } from "../../state/favorites";
+import { useSelector } from "react-redux";
 import Nav from "../Nav/Nav";
 import Card from "../../common/Card/Card";
+import { fetchApi } from "../../config/axiosInstance";
 
 export default function FavPage() {
-
   const [movies, setMovies] = useState([]);
-  const dispatch = useDispatch();
+
+  const users = useSelector((state) => state.users);
 
   useEffect(() => {
-    dispatch(Favorites(setMovies));
+    const fetchMovieData = async () => {
+      const res = await fetchApi({
+        method: "get",
+        url: `/api/movies/favorites?userId=${users.id}`,
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      setMovies(res.data);
+    };
+    fetchMovieData();
   }, []);
 
   if (movies.length !== 0) {
@@ -29,7 +38,16 @@ export default function FavPage() {
 
   return (
     <>
-      <p className="text-red-600">404 Not Found</p>
+      <Flex
+        width={"100vw"}
+        height={"100vh"}
+        alignContent={"center"}
+        justifyContent={"center"}
+      >
+        <Center>
+          <Text fontSize={{ base: '24px',sm: '28px', md: '36px', lg: '46px', xl: '56px' }} className="text-white">You don't have any movie or tv show in favorites</Text>
+        </Center>
+      </Flex>
     </>
   );
 }

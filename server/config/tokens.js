@@ -1,13 +1,12 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { SECRET } = require("./envs");
 
 function generateToken (payload) {
-    return jwt.sign(payload,SECRET,{ expiresIn: "2h"})
+    return jwt.sign(payload,SECRET,{ expiresIn: "1d"})
 }
 
 function validateToken (token) {
     return jwt.verify(token,SECRET)
 }
-
-const SECRET = "butterfly"
 
 module.exports = { generateToken, validateToken }

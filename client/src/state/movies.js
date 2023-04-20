@@ -12,6 +12,11 @@ export const MovieDetailRequest = createAsyncThunk("MOVIE_DETAIL", ({get_url, AP
       .then(res => res.data)
 })
 
+export const TvDetailRequest = createAsyncThunk("MOVIE_DETAIL", ({get_url, API_KEY, id}) => {
+    return axios.get(`${get_url}/tv/${id}${API_KEY}&append_to_response=videos,images`)
+      .then(res => res.data)
+})
+
 export const MovieSearchRequest = createAsyncThunk("MOVIE_SEARCH", ({get_url, setMovies}) => {
     return axios.get(`${get_url}${requests.fetchAnimation}`)
       .then(res => setMovies(res.data.results))
@@ -38,16 +43,35 @@ export const MovieSetSearch2 = createAsyncThunk("MOVIE_SET_SEARCH2", ({get_url, 
         })
 })
 
+export const SerieSetSearch = createAsyncThunk("MOVIE_SET_SEARCH", ({get_url, API_KEY, search, setSeries}) => {
+    return axios.get(`${get_url}/search/tv${API_KEY}&query=${search.value}&page=1`)
+        .then(res => {
+            setSeries(res.data.results)
+            search.onChange({ target: { value: "" } });
+        })
+})
+
+export const SerieSetSearch2 = createAsyncThunk("MOVIE_SET_SEARCH", ({get_url, API_KEY, search, setSeries2}) => {
+    return axios.get(`${get_url}/search/tv${API_KEY}&query=${search.value}&page=2`)
+        .then(res => {
+            setSeries2(res.data.results)
+            search.onChange({ target: { value: "" } });
+        })
+})
+
 
 const moviesReducer = createReducer(
     {},
     {
         [MovieDetailRequest.fulfilled]: (state,action) => action.payload,
+        [TvDetailRequest.fulfilled]: (state,action) => action.payload,
         [MovieBannerRequest.fulfilled]: (state,action) => action.payload,
         [MovieSearchRequest.fulfilled]: (state,action) => action.payload,
         [MovieSearchRequest2.fulfilled]: (state,action) => action.payload,
         [MovieSetSearch.fulfilled]: (state,action) => action.payload,
         [MovieSetSearch2.fulfilled]: (state,action) => action.payload,
+        [SerieSetSearch.fulfilled]: (state,action) => action.payload,
+        [SerieSetSearch2.fulfilled]: (state,action) => action.payload
     }
 )
 

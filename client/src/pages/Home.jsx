@@ -24,7 +24,6 @@ export default function Home() {
     dispatch(checkLogin())
   }, []);
 
-
   if (user.id) {
     return (
       <>

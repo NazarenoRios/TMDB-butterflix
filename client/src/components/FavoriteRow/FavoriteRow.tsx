@@ -4,8 +4,8 @@ import { Image } from "@chakra-ui/react";
 import "./Row.css";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
-import { useDispatch } from "react-redux";
-import { Favorites } from "../../state/favorites";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchApi } from "../../config/axiosInstance";
 
 const base_url = "https://image.tmdb.org/t/p/original/";
 
@@ -27,13 +27,22 @@ function FavoriteRow({ title }) {
   };
 
   const [movies, setMovies] = useState([]);
-  const dispatch = useDispatch();
+  const users = useSelector((state) => state.users)
 
   useEffect(() => {
-    dispatch(Favorites(setMovies));
+    const fetchMovieData = async () => {
+      const res = await fetchApi({
+        method: "get",
+        url: `/api/movies/favorites?userId=${users.id}`,
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      setMovies(res.data);
+    };
+    fetchMovieData();
   }, []);
 
-  if (movies.length > 0) {
+  if (movies) {
     return (
       // title
       <div className="row h-40 space-y-0.5 md:space-y-2 sm:mt-12">
@@ -56,19 +65,19 @@ function FavoriteRow({ title }) {
             className="flex scrollbar-hide items-center space-x-0.5 overflow-x-scroll md:space-x-2.5 md:p-2"
             ref={rowRef}
           >
-            {movies.map((movie, i) => (
+            {movies?.map((movie, i) => (
               <div
                 key={i}
                 className="relative h-28 min-w-[180px] md:min-w-[380px] md:min-h-[220px]"
               >
-                <Link to={`/movie/${movie.code}`}>
+                <Link to={`/${movie.type}/${movie.code}`}>
                   <Image
                     key={movie.id}
                     className="row__poster "
                     src={`${base_url}${
                       movie.backdrop_path || movie.poster_path
                     }`}
-                    alt={movie.name}  
+                    alt={movie.name}
                     height="100%"
                     width="100%"
                   />

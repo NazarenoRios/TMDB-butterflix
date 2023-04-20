@@ -72,7 +72,11 @@ function Row({ title, fetchUrl }) {
                   src={`${base_url}${
                     movie.backdrop_path || movie.poster_path
                   }`}
-                  alt={movie.name} 
+                  alt={movie.name}
+                  minW={380}
+                  maxWidth={380}
+                  minH={220}
+                  maxH={220}
                 />
               </Link>
           </div>

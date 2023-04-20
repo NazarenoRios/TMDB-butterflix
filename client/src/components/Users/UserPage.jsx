@@ -1,50 +1,61 @@
 import React, { useEffect, useState } from "react";
 import { SimpleGrid } from "@chakra-ui/react";
-import { useDispatch } from "react-redux";
-import { useParams } from 'react-router-dom';
-import { getUser } from '../../state/updatedUser';
 import UserPersonalCard from "../../common/Card/UserPersonalCard/UserPersonalCard";
 import UserInfoCard from "../../common/Card/UserPersonalCard/UserInfoCard";
-import { UserFavorites } from "../../state/favorites";
+import { fetchApi } from "../../config/axiosInstance";
+import { useLocation } from "react-router-dom";
 
 function UserPage() {
+  const params = useLocation();
+  const id = params.pathname.split("/user/")[1];
 
-  const params = useParams()
-  const id = JSON.stringify(parseInt(params.id));
+  const [user, setUser] = useState({});
+  const [movies, setMovies] = useState([]);
 
-  const [user,setUser] = useState({});
-  const [movies,setMovies] = useState([]);
+  //User data
+  const fetchUserData = async () => {
+    const res = await fetchApi({
+      method: "get",
+      url: `/api/users/user/${id}`,
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setUser(res.data);
+  };
 
-  const dispatch = useDispatch()
+  //User movies
+  const fetchMovieData = async () => {
+    const res = await fetchApi({
+      method: "get",
+      url: `/api/movies/favorites?userId=${id}`,
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setMovies(res.data);
+  };
 
   useEffect(() => {
-    dispatch(getUser({id,setUser}))
-  },[])
-
-  useEffect(() => {
-    dispatch(UserFavorites({id,setMovies}));
+    fetchMovieData();
+    fetchUserData();
   }, []);
 
   return (
     <>
-      <UserPersonalCard user={user}/>
+      <UserPersonalCard user={user} />
 
       <div className="flex justify-center mb-2">
-        <h1 style={{fontSize:"30px"}}>{user.name}</h1>
+        <h1 style={{ fontSize: "30px" }}>{user.name}</h1>
       </div>
 
       <div className="flex justify-center">
-        <h2 style={{fontSize:"30px"}}>Favorite List</h2>
+        <h2 style={{ fontSize: "30px" }}>Favorite List</h2>
       </div>
 
       <SimpleGrid minChildWidth="300px" spacing="30px">
-        {movies.map((movie,i) => (
-          <UserInfoCard movie={movie} key={i}/>
-        ))}
+        {movies
+          ? movies.map((movie, i) => <UserInfoCard movie={movie} key={i} />)
+          : ""}
       </SimpleGrid>
     </>
   );
 }
-
 
 export default UserPage;
