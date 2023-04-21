@@ -10,13 +10,13 @@ import playIconBlack from "../../assets/playIcons/play-icon-black.svg";
 import favorites from "../../assets/btnIcons/favorites.svg";
 
 import { useDispatch, useSelector } from "react-redux";
-import { MovieDetailRequest, TvDetailRequest } from "../../state/movies";
+import { TvDetailRequest } from "../../state/movies";
 import { fetchApi } from "../../config/axiosInstance";
 
 function TvDetail() {
   const get_url = "https://api.themoviedb.org/3";
   const base_url = "https://image.tmdb.org/t/p/original/";
-  const API_KEY = "?api_key=a9891d14d2e4598d55823b3ec706cfb0";
+  const API_KEY = `?api_key=${process.env.REACT_APP_TMDB_API_KEY}`;
   const params = useParams();
   const id = JSON.stringify(parseInt(params.id));
 
@@ -51,7 +51,7 @@ function TvDetail() {
   const fetchAddFavorite = async () => {
     const res = await fetchApi({
       method: "put",
-      url: `/api/movies/addFavorite?userId=${users.id}&code=${movie.id}&title=${movie.title}&poster_path=${movie.poster_path}&vote_average=${movie.vote_average}&release_date=${movie.release_date}&type=tv`,
+      url: `/api/movies/addFavorite?userId=${users.id}&code=${movie.id}&title=${movie.name}&poster_path=${movie.poster_path}&vote_average=${movie.vote_average}&release_date=${movie.first_air_date}&type=tv`,
     });
     return res.data
   };

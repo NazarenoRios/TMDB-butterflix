@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchApi } from "../../config/axiosInstance";
 
+import { useForm } from "react-hook-form"
 import { useInput } from "../../hooks/useInput";
 import { useSelector } from "react-redux";
 
 import { GoogleLogin } from "@react-oauth/google";
 
+import Loading from "../../common/Loading"
 import videoloader from "../../assets/loader/video1.mp4";
 import logo from "../../assets/logo/butterLogo3.png";
 import styled from "styled-components";
@@ -31,6 +33,8 @@ export default function LoginForm() {
   const email = useInput("email");
   const password = useInput("password");
   const [invalidAccount, setInvalidAccount] = useState("");
+  const [showLoading,setShowLoading] = useState(null)
+  const [showLoadingText,setShowLoadingText] = useState(null)
 
   const navigate = useNavigate();
 
@@ -59,11 +63,15 @@ export default function LoginForm() {
       body: { credential: tokenResponse.credential },
     }).catch(err => {
       if (err.response.status === 401) {
+        setShowLoading(null)
+        setShowLoadingText(null)
         setInvalidAccount("Incorrect email or password, please try again");
       }
     })
 
     if (status === 201) {
+      setShowLoading(null)
+      setShowLoadingText(null)
       localStorage.setItem("token", data.token);
       videoLogin();
     }
@@ -79,25 +87,31 @@ export default function LoginForm() {
   };
 
   const sucessGoogleResponse = (tokenResponse) => {
+    setShowLoading(<Loading/>)
+    setShowLoadingText(`Loading..`)
     fetchGoogleLogin(tokenResponse);
   };
 
   // login with db Acc
-  const fetchLogin = async () => {
+  const fetchLogin = async (info) => {
     const { status, data } = await fetchApi({
       method: "post",
       url: "/api/users/login",
       body: {
-        email: email.value,
-        password: password.value,
+        email: info.email,
+        password: info.password,
       },
     }).catch((err) => {
       if (err.response.status === 401) {
+        setShowLoading(null)
+        setShowLoadingText(null)
         setInvalidAccount("Incorrect email or password, please try again");
       }
     });
 
     if (status === 201) {
+      setShowLoading(null)
+      setShowLoadingText(null)
       localStorage.setItem("token", data.user.token);
       videoLogin();
     }
@@ -110,28 +124,48 @@ export default function LoginForm() {
     return res.data;
   };
 
-  const changeState = (e) => {
-    e.preventDefault();
-    fetchLogin();
-  };
+  // const changeState = (e) => {
+  //   e.preventDefault();
+  //   setInvalidAccount("")
+  //   setShowLoading(<Loading/>)
+  //   setShowLoadingText(`Loading..`)
+  //   fetchLogin();
+  // };
 
   useEffect(() => {
     if (user.id) navigate("/home");
   }, []);
 
-  const handleKeyDown1 = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      fetchLogin();
-    }
-  };
+  // const handleKeyDown1 = (e) => {
+  //   if (e.key === "Enter") {
+  //     e.preventDefault();
+  //     setInvalidAccount("")
+  //     setShowLoading(<Loading/>)
+  //     setShowLoadingText(`Loading..`)
+  //     fetchLogin();
+  //   }
+  // };
 
-  const handleKeyDown2 = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      fetchLogin();
-    }
-  };
+  // const handleKeyDown2 = (e) => {
+  //   if (e.key === "Enter") {
+  //     e.preventDefault();
+  //     setInvalidAccount("")
+  //     setShowLoading(<Loading/>)
+  //     setShowLoadingText(`Loading..`)
+  //     fetchLogin();
+  //   }
+  // };
+
+  //React-hook-form
+  const { register, handleSubmit, formState: {errors} } = useForm()
+
+
+  const onSubmit = (info) => {
+    setInvalidAccount("")
+    setShowLoading(<Loading/>)
+    setShowLoadingText(`Loading..`)
+    fetchLogin(info)
+  }
 
   if (loading) {
     return (
@@ -166,9 +200,11 @@ export default function LoginForm() {
             p={{ base: 4, sm: 6, md: 8 }}
             spacing={{ base: 8 }}
             maxW={{ lg: "lg" }}
-            // onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <Stack spacing={4}>
+              <Center>{showLoading}</Center>
+              <Center fontWeight='bold' color='#5ddcff'>{showLoadingText}</Center>
               <Heading
                 className="text-white text-center"
                 lineHeight={1.1}
@@ -192,40 +228,44 @@ export default function LoginForm() {
               <Stack spacing={4}>
                 <Input
                   placeholder="firstname@example.com"
+                  id="email"
                   type="email"
                   borderTop={0}
                   borderRight={0}
                   borderLeft={0}
                   className="placeholder:text-center"
-                  onKeyDown={handleKeyDown1}
+                  // onKeyDown={handleKeyDown1}
                   _placeholder={{
                     color: "gray.500",
                   }}
-                  {...email}
+                  {...register("email", { required:true })}
                 />
+                {errors.email?.type === "required" && <span className="text-red-500 ml-8 sm:ml-0">* Email field cant be empty </span>}
                 <Input
                   placeholder="Password..."
+                  id="password"
                   type="password"
                   borderTop={0}
                   borderRight={0}
                   borderLeft={0}
                   className="placeholder:text-center"
-                  onKeyDown={handleKeyDown2}
+                  // onKeyDown={handleKeyDown2}
                   _placeholder={{
                     color: "gray.500",
                   }}
-                  {...password}
+                  {...register("password", { required:true })}
                 />
-
+                {errors.password?.type === "required" && <span className="text-red-500 ml-8 sm:ml-0">* Password field cant be empty </span>}
                 <Center color="red">{invalidAccount}</Center>
               </Stack>
               <Button
+                type="submit"
                 fontFamily={"heading"}
                 mt={8}
                 w={"full"}
                 bgGradient="linear(to-r, blue.400,pink.400)"
                 color={"white"}
-                onClick={(e) => changeState(e)}
+                // onClick={(e) => changeState(e)}
                 _hover={{
                   bgGradient: "linear(to-r, red.400,pink.400)",
                   boxShadow: "xl",
@@ -233,6 +273,9 @@ export default function LoginForm() {
               >
                 Submit
               </Button>
+              <br/>
+              <br/> 
+              
             </Box>
 
             <div className="text-[gray] text-center">
